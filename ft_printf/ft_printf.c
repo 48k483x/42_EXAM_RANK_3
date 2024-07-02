@@ -16,7 +16,7 @@ void	_putdigit(long long int num, int base, int *length)
 	if (num < 0)
 	{
 		num *= -1;
-		length += write(1, "-", 1);
+		*length += write(1, "-", 1);
 	}
 	if (num >= base)
 		_putdigit(num / base,  base, length);
