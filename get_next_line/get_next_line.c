@@ -1,103 +1,53 @@
-# include <stdio.h>
-# include <fcntl.h>
-# include <unistd.h>
-# include <stdlib.h>
+#include <unistd.h>
+#include <stdlib.h>
 
 #ifndef BUFFER_SIZE
-# define BUFFER_SIZE 42
+#define BUFFER_SIZE 42
 #endif
 
-char	*_strchr(char *s, int c)
+static char *ft_strjoin(char *s, char c)
 {
-	while (*s)
-	{
-		if (*s == c)
-			return (char *)s;
-		s++;
-	}
-	return NULL;
+    char *new;
+    int i = 0;
+
+    while (s && s[i])
+        i++;
+    if (!(new = malloc(i + 2)))
+        return (NULL);
+    i = 0;
+    while (s && s[i])
+    {
+        new[i] = s[i];
+        i++;
+    }
+    new[i] = c;
+    new[i + 1] = '\0';
+    free(s);
+    return (new);
 }
 
-int	_strlen(const char *s)
+char *get_next_line(int fd)
 {
-	int	i;
+    static char buf[BUFFER_SIZE];
+    static int pos = 0, bytes = 0;
+    char *line = NULL;
+    char c;
 
-	i = 0;
-	while (s[i])
-		i++;
-	return i;
+    if (fd < 0 || BUFFER_SIZE <= 0)
+        return (NULL);
+    while (1)
+    {
+        if (pos >= bytes)
+        {
+            pos = 0;
+            if ((bytes = read(fd, buf, BUFFER_SIZE)) <= 0)
+                break;
+        }
+        c = buf[pos++];
+        if (!(line = ft_strjoin(line, c)))
+            return (NULL);
+        if (c == '\n')
+            break;
+    }
+    return (line);
 }
-
-void	_strcpy(char *cp, const char *s)
-{
-	while (*s)
-		*cp++ = *s++;
-	*cp = '\0';
-}
-
-char	*_strdup(char const *s)
-{
-	int	len = _strlen(s);
-	char	*dup = malloc(len + 1);
-
-	if (!dup)
-		return NULL;
-	_strcpy(dup, s);
-	return dup;
-}
-
-char *_strjoin(char *join1, const char *join2)
-{
-	int	len1 = _strlen(join1);
-	int	len2 = _strlen(join2);
-	char	*join = malloc(len1 + len2 + 1);
-
-	if (!join1 || !join2)
-		return NULL;
-	if (!join)
-		return NULL;
-	_strcpy(join, join1);
-	_strcpy(join + len1, join2);
-	return join;
-}
-
-char	*get_next_line(int fd)
-{
-	static char	buf[BUFFER_SIZE + 1];
-	char		*line;
-	char		*new_line;
-	int		to_copy; int count;
-
-	line = _strdup(buf);
-	if (!(new_line = _strchr(line, '\n')) && (count = read(fd, buf, BUFFER_SIZE)))
-	{
-		buf[count] = '\0';
-		line = _strjoin(line, buf);
-	}	
-	if (_strlen(line) == 0)
-		return (free(line), NULL);
-	if (new_line != NULL)
-	{
-		to_copy = new_line - line + 1;
-		_strcpy(buf, new_line + 1);
-	}
-	else
-	{
-		to_copy = _strlen(line);
-		buf[0] = '\0';
-	}
-	line[to_copy] = '\0';
-	return line;
-}
-/*
-int	main(void)
-{
-	int fd = open("file.txt", O_RDWR);
-	char	*line = get_next_line(fd);
-	while (line)
-	{
-		printf("%s", line);
-		free(line);
-		line = get_next_line(fd);
-	}
-}*/
